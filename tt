@@ -1,0 +1,197 @@
+
+    private static String[] numbersInTextFormat = new String[]{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
+    private boolean characterIsNotPartOfNumberInText = false;
+
+    public String[] splitLines(String input) {
+        String[] lines = input.split("\n");
+
+        return lines;
+    }
+
+    public String traverseLine(String remainder){
+        return traverseLine(remainder, "forward") + traverseLine(remainder, "backwards");
+    }
+
+    public String traverseLine(String remainder, String direction){
+        String charAtFirstIndex = "";
+        charAtFirstIndex = getFirstCharacter(remainder, direction, charAtFirstIndex);
+
+        String beginNumber = creatRegExpMatcherNumbers(charAtFirstIndex);
+
+
+        if(beginNumber.equals("")){
+            if(direction.equals("forward")){
+                beginNumber = traverseLine(remainder.substring(1),"forward");
+            } else {
+                beginNumber = traverseLine(remainder.substring(0,remainder.length() - 1),"backwards");
+            }
+
+        }
+
+        return beginNumber;
+    }
+
+    private static String getFirstCharacter(String remainder, String direction, String charAtFirstIndex) {
+        if(direction.equals("forward")){
+            charAtFirstIndex += remainder.charAt(0);
+        } else {
+            charAtFirstIndex = ""+ remainder.substring(remainder.length()-1);
+        }
+        return charAtFirstIndex;
+    }
+
+    public String traverseLine(String partialNumberTextFormat, String remainder, String direction){
+        String beginNumber = "";
+        characterIsNotPartOfNumberInText = false;
+
+        String finalPartialNumberTextFormat1 = partialNumberTextFormat;
+        beginNumber = getNumberInTextFormatBasedOnDirection(direction, finalPartialNumberTextFormat1, beginNumber);
+
+        if(checkForNoNumberDetectedYet(beginNumber)) {
+            String charAtFirstIndex = "";
+            charAtFirstIndex = getFirstCharacter(remainder, direction, charAtFirstIndex);
+
+            beginNumber = creatRegExpMatcherNumbers(charAtFirstIndex);
+
+
+            if(Objects.equals(beginNumber, "")){
+                beginNumber = startRecursiveTraverseBasedOnDirection(partialNumberTextFormat, remainder, direction, charAtFirstIndex, beginNumber);
+
+            }
+        }
+
+        beginNumber = convertTextToNumber(beginNumber);
+        return beginNumber;
+    }
+
+    private String getNumberInTextFormatBasedOnDirection(String direction, String finalPartialNumberTextFormat1, String beginNumber) {
+        if(direction.equals("forward")){
+            if(checkIfPartialNumberInTextIsInArray(numbersInTextFormat, finalPartialNumberTextFormat1, "forward")){
+                beginNumber = Arrays
+                        .stream(numbersInTextFormat)
+                        .filter(numberInTextFormat -> numberInTextFormat.startsWith(finalPartialNumberTextFormat1))
+                        .toList()
+                        .getFirst();
+            } else {
+                characterIsNotPartOfNumberInText = true;
+            }
+        } else {
+            if(checkIfPartialNumberInTextIsInArray(numbersInTextFormat, finalPartialNumberTextFormat1, "backward")){
+                beginNumber = Arrays
+                        .stream(numbersInTextFormat)
+                        .filter(numberInTextFormat -> numberInTextFormat.endsWith(finalPartialNumberTextFormat1))
+                        .toList()
+                        .getFirst();
+            } else {
+                characterIsNotPartOfNumberInText = true;
+            }
+        }
+        return beginNumber;
+    }
+
+    private static boolean checkIfPartialNumberInTextIsInArray(String[] numbersInTextFormat, String finalPartialNumberTextFormat1, String direction) {
+        if(direction.equals("forward")){
+            return Arrays
+                    .stream(numbersInTextFormat)
+                    .filter(
+                            numberInTextFormat -> numberInTextFormat.startsWith(finalPartialNumberTextFormat1)
+                            &&
+                            numberInTextFormat.equals(finalPartialNumberTextFormat1)
+                    )
+                    .count() > 0;
+        } else {
+            return Arrays
+                    .stream(numbersInTextFormat)
+                    .filter(
+                            numberInTextFormat -> numberInTextFormat.endsWith(finalPartialNumberTextFormat1)
+                            &&
+                            numberInTextFormat.equals(finalPartialNumberTextFormat1)
+                    )
+                    .count() > 0;
+        }
+
+    }
+
+    private String startRecursiveTraverseBasedOnDirection(String partialNumberTextFormat, String remainder, String direction, String charAtFirstIndex, String beginNumber) {
+        if(characterIsNotPartOfNumberInText){
+            partialNumberTextFormat = "";
+            characterIsNotPartOfNumberInText = false;
+        }
+        if(direction.equals("forward")){
+            partialNumberTextFormat = clearInitialPartialNumberTextFormat(partialNumberTextFormat);
+            String finalPartialNumberTextFormat = partialNumberTextFormat + charAtFirstIndex;
+            beginNumber = startNewRecursiveTraversalIfCountBiggerThan0(numbersInTextFormat, remainder, finalPartialNumberTextFormat, beginNumber, "forward");
+        } else {
+            partialNumberTextFormat = clearInitialPartialNumberTextFormat(partialNumberTextFormat);
+            String finalPartialNumberTextFormat = charAtFirstIndex + partialNumberTextFormat;
+            beginNumber = startNewRecursiveTraversalIfCountBiggerThan0(numbersInTextFormat, remainder, finalPartialNumberTextFormat, beginNumber, "backward");
+        }
+        return beginNumber;
+    }
+
+    private String startNewRecursiveTraversalIfCountBiggerThan0(String[] numbersInTextFormat, String remainder, String finalPartialNumberTextFormat, String beginNumber, String direction) {
+//        if(checkIfFilterCountIsBiggerThan0(numbersInTextFormat, finalPartialNumberTextFormat, direction)) {
+            if(direction.equals("forward")){
+                beginNumber = traverseLine(finalPartialNumberTextFormat, remainder.substring(1), direction);
+            } else {
+                beginNumber = traverseLine(finalPartialNumberTextFormat, remainder.substring(0,remainder.length()-1), direction);
+            }
+
+//        }
+
+        return beginNumber;
+    }
+
+    private static boolean checkIfFilterCountIsBiggerThan0(String[] numbersInTextFormatReversed, String finalPartialNumberTextFormat, String direction) {
+        if(direction.equals("forward")){
+            return Arrays.stream(numbersInTextFormatReversed).filter(numberInTextFormat -> numberInTextFormat.startsWith(finalPartialNumberTextFormat)).count() > 0;
+        } else {
+            return Arrays.stream(numbersInTextFormatReversed).filter(numberInTextFormat -> numberInTextFormat.endsWith(finalPartialNumberTextFormat)).count() > 0;
+        }
+
+    }
+
+    private static boolean checkForNoNumberDetectedYet(String beginNumber) {
+        return beginNumber.equals("");
+    }
+
+    private static String clearInitialPartialNumberTextFormat(String partialNumberTextFormat) {
+        if(partialNumberTextFormat.equals("-")){
+            partialNumberTextFormat = "";
+        }
+        return partialNumberTextFormat;
+    }
+
+    private String convertTextToNumber(String beginNumber) {
+        return switch (beginNumber){
+            case "zero" -> "0";
+            case "one" -> "1";
+            case "two" -> "2";
+            case "three" -> "3";
+            case "four" -> "4";
+            case "five" -> "5";
+            case "six" -> "6";
+            case "seven" -> "7";
+            case "eight" -> "8";
+            case "nine" -> "9";
+            default -> beginNumber;
+        };
+    }
+
+    private static String creatRegExpMatcherNumbers(String character) {
+        String regExpMatchNumberInString = "[0-9]";
+        Pattern pattern = Pattern.compile(regExpMatchNumberInString);
+        Matcher matcher = pattern.matcher(character);
+        if(matcher.find()){
+            return matcher.group();
+        }
+        return "";
+    }
+
+    public int getSumInNumberFormatFromLine(String[] lines) {
+        return calculateTotalSum(lines);
+    }
+
+    private Integer calculateTotalSum(String[] lines) {
+        return Arrays.stream(lines).map(line -> Integer.parseInt(traverseLine(line))).reduce(0, Integer::sum);
+    }
