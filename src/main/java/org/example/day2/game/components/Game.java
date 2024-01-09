@@ -40,8 +40,6 @@ public class Game {
 
     }
 
-    // git terminal push test
-
     private static CubeDraw calculateMin(CubeDraw minRequiredCubes, CubeDraw firstCubeDraw) {
         int minRed = Math.max(firstCubeDraw.redCubes(), minRequiredCubes.redCubes());
         int minGreen = Math.max(firstCubeDraw.greenCubes(), minRequiredCubes.greenCubes());
